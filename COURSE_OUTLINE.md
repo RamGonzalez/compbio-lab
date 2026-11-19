@@ -1,28 +1,30 @@
-# Population Genomics: from the Terminal to PCA and ADMIXTURE
+# Population Genomics: from the Terminal to PCA and ADAMIXTURE
 
-**Format:** 7 sessions × ~90 min, hands-on, each student on their own laptop (Windows + WSL2/Ubuntu).
+**Format:** 7 sessions × ~90 min, hands-on, each student on their own laptop (Windows + WSL2/Ubuntu; one student on a Mac, who uses the macOS Terminal with the same commands).
 **Audience:** Physical anthropology, biology and biotechnology students. No assumed programming or command-line experience.
-**Hardware budget:** assume **8 GB RAM and 4 cores** per laptop. Every command in the course must run comfortably within that (use `--threads 4`, `plink --memory 3000`, `admixture -j4`).
-**Final goal:** each student can run PCA and ADMIXTURE on a small dataset and explain what the results do and do not say.
+**Hardware budget:** assume **8 GB RAM and 4 cores** per laptop. Every command in the course must run comfortably within that (use `--threads 4`, `plink --memory 3000`, `adamixture -t 4`).
+**Final goal:** each student can run PCA and ADAMIXTURE on a small dataset and explain what the results do and do not say.
 
 ## Design principles
 
 - **Terminal first, but always in service of data.** From session 2 students touch real genetic files, not toy `ls` exercises.
 - **Concept, then run, then interpret.** Every analysis session has: intuition (no maths first), a run, and an interpretation exercise.
-- **One small dataset all course long.** Students get to know it, so by session 7 they can predict what PCA/ADMIXTURE will show and be surprised only by the interesting parts.
+- **One small dataset all course long.** Students get to know it, so by session 7 they can predict what PCA/ADAMIXTURE will show and be surprised only by the interesting parts.
 - **Everything is a script.** By session 4 students save commands in a `.sh` file; by session 7 they can rerun the whole analysis with one command.
 - **Instructor prepares the data.** Students never download or subset reference data themselves.
 
 ## Software
 
-One conda environment on WSL, created by the students in session 1 (installed with Miniforge, environment named `compbio-lab`):
+One conda environment on WSL (or macOS), created by the students in session 1 (installed with Miniforge, environment named `compbio-lab`):
 
-- `plink` (1.9) and `plink2`
-- `bcftools` (and `htslib` for bgzip/tabix)
-- `admixture` (ADMIXTURE)
+- `plink` (1.9) and `plink2` (conda-forge/bioconda)
+- `bcftools` (and `htslib` for bgzip/tabix) (bioconda)
+- **ADAMIXTURE** (`adamixture` command), installed with **pip inside the env** (it is on PyPI, not bioconda; needs Python ≥ 3.10). It is a fast reimplementation of ADMIXTURE that uses an Adam-style optimizer in the EM algorithm; it fits the same model and writes ADMIXTURE-compatible `.P` and `.Q` files, with multi-threading (`-t`), a built-in K sweep (`--min_k/--max_k`), built-in cross-validation (`--cv`) and an automatic Q-plot. CPU mode is the default and is what we use. Its licence is free for academic/research use only.
 - `r-base` with `ggplot2`, `tidyverse` (plotting is done in **R** throughout)
 
-Keep everything within 8 GB / 4 cores: small SNP sets, few runs in parallel, no memory-hungry tools.
+**Mac student:** use the Miniforge macOS installer (Apple Silicon or Intel build). Before `pip install adamixture`, run `brew install libomp` (OpenMP is needed). If a bioconda package has no native Apple Silicon build, create the env under Rosetta (`CONDA_SUBDIR=osx-64`). Test this on a Mac before session 1. Stay on CPU (do not use `--device mps`) so results match everyone else's.
+
+Keep everything within 8 GB / 4 cores: small SNP sets, few runs in parallel, no memory-hungry tools. Pin the ADAMIXTURE version in the env spec (the package is evolving quickly and flags have changed between releases).
 
 ## Data (to be prepared later)
 
@@ -40,9 +42,9 @@ Not needed yet. Plan when we get to it: a small 1000 Genomes subset, with **MXL*
 **Plan (90 min)**
 - 0–20: Introductions (name, background, what they know about genetics/computing, one thing they want to learn). Brief course presentation: goals, the 7-session outline, expectations, how to ask for help.
 - 20–35: Open WSL, first look at the prompt, `pwd`, `ls`, `cd`, working in the Linux home (`~/`) rather than `/mnt/c`.
-- 35–60: Install Miniforge/conda. Explain what a package manager and an environment are, and why we use one.
-- 60–80: Create the `compbio-lab` env and install `plink`, `plink2`, `bcftools`, `admixture`, R. Run each tool with `--version`/`--help`.
-- 80–90: Run the `check_setup.sh` script that verifies every tool. Note who still has problems; fix them before session 2 (office hours or chat).
+- 35–50: Install Miniforge/conda. Explain what a package manager and an environment are, and why we use one.
+- 50–80: Create the `compbio-lab` env (plink, plink2, bcftools, R), then `pip install adamixture` inside it. The env solve/download can take 10+ minutes on slow connections: start it right away and use the waiting time to explain what is happening and to show the outline.
+- 80–90: Run `check_setup.sh` (each tool with `--version`/`--help`). Note who still has problems; fix them before session 2 (office hours or chat).
 
 **Deliverable/homework:** a screenshot or the output of `check_setup.sh` showing everything installed. Reserve a lot of slack: install problems always overrun, and downloads on slow connections take time.
 
@@ -86,7 +88,7 @@ Not needed yet. Plan when we get to it: a small 1000 Genomes subset, with **MXL*
 - Read a VCF: header, fixed columns, genotype fields (`0|1`, `./.`).
 - Know the PLINK `.bed/.bim/.fam` files and convert VCF → PLINK.
 - Filter: biallelic SNPs, missingness, MAF, and why each matters.
-- Understand linkage disequilibrium and why PCA/ADMIXTURE need pruned SNPs.
+- Understand linkage disequilibrium and why PCA/ADAMIXTURE need pruned SNPs.
 - Relatedness conceptually (and `plink2 --king-cutoff`).
 
 **Plan**
@@ -118,36 +120,37 @@ Not needed yet. Plan when we get to it: a small 1000 Genomes subset, with **MXL*
 
 **Deliverable/homework:** `02_pca.sh` + `plot_pca.R`; a paragraph interpreting the plot.
 
-## Session 6: ADMIXTURE, concepts and run
+## Session 6: ADAMIXTURE, concepts and run
 
 **Learning objectives**
 - Model intuition: each genome is a mixture of K ancestral populations; outputs are the Q matrix (proportions) and P matrix (allele frequencies).
 - K is a modelling choice; the "ancestral populations" are statistical constructs, not real historical groups.
-- Run `admixture --cv` for K = 2…5; choose K using cross-validation error *and* biological sense.
+- Run `adamixture --cv` for K = 2…5; choose K using cross-validation error *and* biological sense.
+- ADAMIXTURE fits the same model as the classic ADMIXTURE, just faster (Adam optimizer inside EM), so what students learn transfers to ADMIXTURE results in papers.
 - Stacked barplots; cluster labels/colours are arbitrary between runs.
 
 **Plan**
 - 0–25: Concept (mixture model, K; relation to PCA: same structure, different representation).
-- 25–55: Run K=2..5 in a bash `for` loop with `-j` set to 4 at most; the data are small enough that runs take seconds to a few minutes.
-- 55–80: Extract CV error with `grep`, plot CV vs K, barplot of Q sorted by population.
+- 25–55: Run K=2..5, either with `--min_k 2 --max_k 5` or a bash `for` loop, with `-t 4` at most; the data are small enough that runs take seconds to a few minutes. Look at the automatic Q-plot PNG first, then rebuild it in R.
+- 55–80: Pull the CV error per K from the log (`tee`/`grep`), plot CV vs K, barplot of the `.Q` files sorted by population in R. (Check the exact log/CV output format in the pinned version before the class.)
 - 80–90: Discussion: what does K=3 show for MXL? What do K=2 and K=4 add?
 
-**Deliverable/homework:** `03_admixture.sh` + `plot_admixture.R`; barplots for K=2–5.
+**Deliverable/homework:** `03_adamixture.sh` + `plot_adamixture.R`; barplots for K=2–5.
 
 ## Session 7: Integration, pitfalls and mini project
 
 **Learning objectives**
-- Combine PCA and ADMIXTURE: agreements, differences, limits.
+- Combine PCA and ADAMIXTURE: agreements, differences, limits.
 - Recognise pitfalls: unbalanced sampling, relatives, too few SNPs, no LD pruning, over-interpreting K, reading admixture as history or dates.
 - Reproduce the whole pipeline with one script.
 
 **Plan**
 - 0–10: Revisit session 3 predictions.
-- 10–50: Mini project in pairs on a "trap" variant of the data: rerun PCA and ADMIXTURE, document what changed and why.
+- 10–50: Mini project in pairs on a "trap" variant of the data: rerun PCA and ADAMIXTURE, document what changed and why.
 - 50–80: 5-minute presentations per pair: one figure, three sentences of interpretation, one caveat.
 - 80–90: Wrap-up: what you can and cannot conclude; next steps (local ancestry, f-statistics, reference panels, ethics of ancestry inference).
 
-**Deliverable:** final 1–2 page report with PCA and ADMIXTURE figures and an interpretation.
+**Deliverable:** final 1–2 page report with PCA and ADAMIXTURE figures and an interpretation.
 
 ---
 
@@ -163,4 +166,4 @@ Not needed yet. Plan when we get to it: a small 1000 Genomes subset, with **MXL*
 1. Session 1 slides and `setup/` (install steps and `check_setup.sh`).
 2. `data/`: small dataset and README documenting provenance (later).
 3. `sessions/01…07/`: notes, exercises, solution scripts, cheat sheets.
-4. `results_reference/`: instructor's precomputed PCA/ADMIXTURE outputs.
+4. `results_reference/`: instructor's precomputed PCA/ADAMIXTURE outputs.
