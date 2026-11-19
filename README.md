@@ -1,11 +1,11 @@
 # compbio-lab
 
-A 7-session course on population genomics for students of physical anthropology, biology and biotechnology: terminal basics, human genetic variation, and running and interpreting PCA and ADAMIXTURE on a small dataset (MXL as the admixed group).
+Curso de 7 sesiones, en español, sobre genómica de poblaciones para estudiantes de antropología física, biología y biotecnología: nociones de terminal, variación genética humana, y cómo correr e interpretar PCA y ADAMIXTURE sobre un conjunto de datos pequeño (con MXL como grupo mezclado).
 
-See [COURSE_OUTLINE.md](COURSE_OUTLINE.md) for the session-by-session plan.
+Consulta [PLAN_DEL_CURSO.md](PLAN_DEL_CURSO.md) para el plan sesión por sesión.
 
-Laptop budget: 8 GB RAM, 4 cores, Windows with WSL2 (one student on a Mac).
+Presupuesto de laptop: 8 GB de RAM, 4 núcleos, Windows con WSL2 (una persona con Mac).
 
-Environment: `compbio-lab` (conda), providing plink, plink2, bcftools, ADAMIXTURE and R. The env spec lives in the shared `environments` repo, not in this project.
+Entorno: `compbio-lab` (conda), con plink, plink2, bcftools, ADAMIXTURE y R. La especificación del entorno vive en el repositorio compartido `environments`, no en este proyecto.
 
-Slides: `slides\/session1_welcome_setup.pptx` (welcome, course overview, conda and tool setup).
+Diapositivas: `slides/sesion1_bienvenida_configuracion.pptx` (bienvenida, panorama del curso, instalación de conda y las herramientas).
