@@ -1,0 +1,12 @@
+.DS_Store
+# Large data and run outputs
+data/
+*.vcf
+*.vcf.gz
+*.bed
+*.bim
+*.fam
+*.Q
+*.P
+.Rhistory
+.Rproj.user/
